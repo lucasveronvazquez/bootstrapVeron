@@ -19,6 +19,18 @@ main {
   padding-top: 20%;
 }
 
+.parrafo--parrafo1 {
+  color: red;
+}
+
+.parrafo--parrafo2 {
+  color: lightblue;
+}
+
+.parrafo--parrafo3 {
+  color: green;
+}
+
 #historiaParrafo {
   font-size: x-large;
   font-weight: 400;

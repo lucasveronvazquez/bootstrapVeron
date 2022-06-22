@@ -1,0 +1,17 @@
+$parrafos:(
+    parrafo1: red,
+    parrafo2: lightblue,
+    parrafo3: green,
+
+
+
+);
+
+@each $parrafo, $color in $parrafos {
+    
+
+    .parrafo--#{$parrafo}{
+        color: $color;
+    }
+}
+
