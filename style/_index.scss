@@ -1,8 +1,81 @@
-#aside{
-    background-color:rgb(205, 240, 234);
-}
+
 
 #parrafo{
-    font-size: x-large;
-    font-weight: 400;
+    font-size:larger;
+    font-weight: 600;
+    padding-top: 100px;
 }
+
+#hero{
+    padding: 90px 40px 90px 40px;
+    
+    align-items: center;
+    text-align: center;
+}
+
+#galeriaHome{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    grid-template-areas: "parrafoHome1 home1"
+                         "home2 parrafoHome2"
+                         "parrafoHome3 home3"
+                         "home4 parrafoHome4";
+                         gap: 10px;
+} 
+
+#galeriaHome img{
+    width: 100%;
+    height: 90%;
+    border: 1px solid black;
+    box-shadow: 0 0 10px black;
+    border-radius: 10px;
+}
+
+#galeriaHome img:hover{
+    transform: scale(1.3);
+    transition-property: all;
+    transition-duration: 1s;
+}
+
+#parrafoHome1{
+    padding-top: 30px;
+    font-size: large;
+    font-weight: 600;
+}
+
+#parrafoHome2{
+    padding-top: 30px;
+    font-size: large;
+    font-weight: 600;
+}
+
+#parrafoHome3{
+    padding-top: 30px;
+    font-size: large;
+    font-weight: 600;
+}
+
+#parrafoHome4{
+    padding-top: 30px;
+    font-size: large;
+    font-weight: 600;
+}
+
+@media screen and (max-width:950px){
+    #galeriaHome{
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
+    grid-template-areas: "parrafoHome1"
+                         "home1"
+                         "parrafoHome2"
+                         "home2"
+                         "parrafoHome3"
+                         "home3"
+                         "parrafoHome4"
+                         "home4";
+}
+}
+
+
+    

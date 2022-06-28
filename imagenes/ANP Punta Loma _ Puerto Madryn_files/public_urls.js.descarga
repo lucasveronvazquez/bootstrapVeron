@@ -1,0 +1,721 @@
+//============================= MANEJO DE ENLACES ============================================================
+
+(function($) {
+
+    $(document).ready(function() {
+
+        $(document).on('click', ".sys_ajax", function(e) {
+            e.stopPropagation();
+            e.preventDefault();
+            var rel_type = $(this).attr('rel-type') ? $(this).attr('rel-type') : '';
+            var rel_id = $(this).attr('rel-id') ? $(this).attr('rel-id') : '';
+            var Url = $(this).attr('href') ? $(this).attr('href') : '';
+            var Taxonomy = $(this).attr('rel-taxonomy') ? $(this).attr('rel-taxonomy') : '';
+            var ForceZoomMap = $(this).attr('rel-ForceZoomMap') ? $(this).attr('rel-ForceZoomMap') : '';
+            var NonSetUrl = $(this).attr('rel-NonSetUrl') ? parseInt($(this).attr('rel-NonSetUrl')) : 0;
+
+            var EstrellasHabilitadas = $(this).attr('rel-estrellas') ? parseInt($(this).attr('rel-estrellas')) : 0;
+
+            var Estrellas = null;
+            var Accesible = null;
+
+            $('.accesible').removeClass('activo');
+
+            if (EstrellasHabilitadas == 1) {
+                var ObjetEstrellas = $('.sys_filtro_estrellas').first();
+                if (ObjetEstrellas) {
+                    Estrellas = $('.filtro-estrella.activa', ObjetEstrellas).length;
+                }
+            }
+
+            if ($('.sys_filtro_estrellas .sys_accesible.activo').length > 0) {
+                Accesible = 1;
+            }
+
+            var Filtros = { 'estrellas': Estrellas, 'accesible': Accesible }
+            if (NonSetUrl == 0) {
+                Set_new_Url(Taxonomy, rel_type, rel_id, Filtros, Url);
+            }
+            call_load_content_ajax(Taxonomy, rel_type, rel_id, Filtros, Url, { 'ForceZoomMap': ForceZoomMap, 'accesible': Accesible });
+        });
+
+		/* 
+        $(document).on('click', "a.sys_show_in_map", function(e) {
+            e.stopPropagation();
+            e.preventDefault();
+            var PostId = $(this).attr('rel-id') ? $(this).attr('rel-id') : '';
+			if( typeof Animar_Markador_por_PostID == 'function' && typeof vista_mapa == 'function' ){
+				Animar_Markador_por_PostID(PostId, true);
+				vista_mapa();
+			}
+        });
+		*/
+		/* SIN MAPA */
+		$(document).on('click', "a.sys_show_in_map", function(e) {
+			console.log( 'sys_show_in_map' );
+			e.stopPropagation();
+			e.preventDefault();
+			
+			var PostId 	= $(this).attr('rel-id') ? $(this).attr('rel-id') : '';
+			var Lat 	= $(this).attr('data-rel-lat') ? $(this).attr('data-rel-lat') : '';
+			var Lng 	= $(this).attr('data-rel-lng') ? $(this).attr('data-rel-lng') : '';
+			
+			console.log('Lat: ' + Lat );
+			console.log('Lng: ' + Lng );
+			
+			if( typeof Lat != 'undefined' && Lat != '' &&  typeof Lng != 'undefined' && Lng != '' ){
+				var url= 'https://www.google.com.sa/maps/dir//'+ Lat +','+ Lng+'/@'+Lat+','+ Lng+'z/data=!4m2!4m1!3e0?hl=es';
+				console.log( url );
+				window.open(url, '_blank');
+				return false;
+			}
+			
+			if( typeof PointersLoaded == 'undefined' ){ return false; }
+			for( var i=0; i<PointersLoaded.length; i++ ){
+				if( PointersLoaded[i].Post_id == PostId ){
+					//var url= 'https://www.google.com.sa/maps/@'+ PointersLoaded[i].lat+','+ PointersLoaded[i].lng +"z?hl=es";
+					var url= 'https://www.google.com.sa/maps/dir//'+ PointersLoaded[i].lat+','+ PointersLoaded[i].lng+'/@'+PointersLoaded[i].lat+','+ PointersLoaded[i].lng+'z/data=!4m2!4m1!3e0?hl=es';
+					console.log( url );
+					window.open(url, '_blank');
+					break;
+				}
+			}
+			console.log( PostId + ' -> No Encontrado'  );
+		});
+
+
+        if (history.pushState) {
+            window.addEventListener('popstate', function(e) {
+                if (e.state == null) {
+                    return;
+                }
+                var Url = window.location.href;
+                call_load_content_ajax(e.state.Taxonomy, e.state.Type, e.state.Id, e.Filtros, Url, {});
+            });
+        }
+    });
+})(jQuery);
+
+
+function Call_Ajax_From_Objet(Objet, Params) {    
+    var rel_type = $(Objet).attr('rel-type') ? $(Objet).attr('rel-type') : '';
+    var rel_id = $(Objet).attr('rel-id') ? $(Objet).attr('rel-id') : '';
+    var Url = $(Objet).attr('href') ? $(Objet).attr('href') : '';
+    var Taxonomy = $(Objet).attr('rel-taxonomy') ? $(Objet).attr('rel-taxonomy') : '';
+    var ForceZoomMap = $(Objet).attr('rel-ForceZoomMap') ? $(Objet).attr('rel-ForceZoomMap') : '';
+    var Estrellas = null;
+    var Accesible = null;
+
+
+    if (Params.estrellas == undefined) {
+        var FiltroHabilitado = jQuery('.sys_filtro_estrellas').attr('data-enabled') ? jQuery('.sys_filtro_estrellas').attr('data-enabled') : 'false';
+        if (FiltroHabilitado == 'true') {
+            var ObjetEstrellas = $('.sys_filtro_estrellas').first();
+            if (ObjetEstrellas) {
+                Estrellas = $('.filtro-estrella.activa', ObjetEstrellas).length;
+            }
+        }
+    } else {
+        Estrellas = Params.estrellas;
+    }
+
+
+    if (Params.ForceZoomMap == undefined) {
+        Params.ForceZoomMap = ForceZoomMap;
+    }
+
+    if (Params.accesible == undefined) {
+        if ($('.sys_filtro_estrellas .sys_accesible.activo').length > 0) {
+            Accesible = 1;
+        }
+    }
+
+
+    var Filtros = { 'estrellas': Estrellas, 'accesible': Accesible }
+    Set_new_Url(Taxonomy, rel_type, rel_id, Filtros, Url);
+    call_load_content_ajax(Taxonomy, rel_type, rel_id, Filtros, Url, Params);
+}
+
+function Set_new_Url(Taxonomy, Type, Id, Filtros, Url) {
+    if (Url == '') { return; }
+    INFO = { 'Taxonomy': Taxonomy, 'Type': Type, 'Id': Id, 'Filtros': Filtros };
+    history.pushState(INFO, null, Url);
+}
+
+
+//============================= AJAX ============================================================
+
+function call_load_content_ajax(Taxonomy, Type, Id, Filtros, Url, Params) {
+
+    if (Type == 'taxonomy' || Type == 'post') {
+        if (Id != 'categoria_hoteleria') {
+            jQuery('.guia-sub-top .sys_filtro_estrellas .filtro-estrella').hide();
+            jQuery('.guia-sub-top .sys_filtro_estrellas .indistinto').hide();
+            jQuery('.sys_filtro_estrellas').attr('data-enabled', 'false');
+        }
+        Params.estrellas = 0;
+    }
+
+
+
+    jQuery.ajax({
+        url: url_web_ajax,
+        type: "POST",
+        data: {
+            'action': 'cargar_contenido',
+            'Type': Type,
+            'Id': Id,
+            'Filtros': Filtros,
+            'Url': Url
+        },
+        cache: false,
+        success: function(Datos) {            
+            // DESMARCAMOS TODO
+            jQuery('.guia-parent').removeClass('selected');
+            jQuery('.guia-sub .menu-guia-item').removeClass('selected');
+            // MARCAMOS SECCION PARENT
+            jQuery('.guia-parent[data-id="' + Taxonomy + '"]').addClass('selected');
+            // Marcamos Sub Seccion
+
+            //alert( Type + ' ' + Taxonomy + ' ' + Id );
+
+            jQuery('.sys_link_titulo_seccion').attr('rel-id', Taxonomy);
+
+            if (Type == 'taxonomy') {
+                if (jQuery('.guia-parent[data-id="' + Taxonomy + '"]').hasClass('open')) {
+                    jQuery('.guia-parent').removeClass('open');
+                    jQuery('.guia-parent[data-id="' + Taxonomy + '"]').addClass('open');
+                } else {
+                    $('.guia-parent, .seleccione_categoria').stop(true, true).animate({ 'margin-left': '0' }, 300);
+                    $('.guia-sub').stop(true, true).animate({ 'left': '100%' }, 300);
+                    jQuery('.guia-parent').removeClass('open');
+                    jQuery('.guia-parent[data-id="' + Taxonomy + '"]').addClass('open');
+                }
+            }
+
+            if (Type == 'term') {
+                jQuery('.guia-parent, .seleccione_categoria').css({ 'margin-left': '-100%' });
+                jQuery('.guia-sub.' + Taxonomy).stop(true, true).animate({ 'left': '0' }, 300);
+                jQuery('.guia-sub.' + Taxonomy + ' .menu-guia-item[rel-id="' + Id + '"]').addClass('selected');
+            }
+
+            if (Type == 'post') {
+                // Cerramos Menu Principal (Siempre)
+                jQuery('.guia-parent, .seleccione_categoria').css({ 'margin-left': '-100%' });
+                // Marcamos Sub Menu
+                jQuery('.guia-sub.' + Taxonomy).stop(true, true).animate({ 'left': '0' }, 300);
+                jQuery('.guia-sub.' + Taxonomy + ' .menu-guia-item[rel-id="' + Id + '"]').addClass('selected');
+
+            }
+
+            /*
+			
+            if( Type != 'taxonomy' ){
+
+            	var menuId = Taxonomy;
+            	if ( jQuery('.guia-sub.'+menuId+'.open').length == 0 ){
+            		if( jQuery('.guia-sub.'+menuId).length ) {
+            			alert('Abrir Seccon.');
+            			// Elminamos Clase de menú abierto
+            			jQuery('.guia-sub').removeClass('open');
+            			// Cerramos Menú
+            			jQuery('.guia-parent, .seleccione_categoria').css({'margin-left':'0'});
+            			jQuery('.guia-sub').css({'left':'100%'});
+            			// Reabrimos Menú
+            			jQuery('.guia-parent, .seleccione_categoria').css({'margin-left':'-100%'});
+            			jQuery('.guia-sub.'+menuId).css({'left':'0'});
+            			jQuery('.guia-sub.'+menuId).addClass('open');
+            		}
+            	}
+            	// Marcamos Sub Seccion
+            	jQuery('.guia-sub.'+Taxonomy+' .menu-guia-item[rel-id="'+Id+'"]').addClass('selected');
+            }else{
+            	//Animacion Close
+            	alert('Cerramos Menu Sup');
+            	if( Params.NotOpenSubSeccion == undefined || Params.NotOpenSubSeccion == false ){
+            		//$('.guia-parent, .seleccione_categoria').stop(true,true).animate({'margin-left':'0'},300);
+            		//$('.guia-sub').stop(true,true).animate({'left':'100%'},300);
+            		//$('.guia-sub.open').removeClass('open');
+            	}
+            }
+            */
+
+            //jQuery("#IMG_VALIDANDO_USER").hide();
+            var DatosJson = {};
+            try {
+                var DatosJson = JSON.parse(Datos);
+            } catch (exp) {
+                alert('Hay un error intentando procesar la informaci&oacute;n.');
+                return;
+            }
+
+            if (DatosJson.ShowFilTop == 1) {
+                jQuery('.guia-sub-top .sys_filtro_estrellas .filtro-estrella').show();
+                jQuery('.guia-sub-top .sys_filtro_estrellas .indistinto').show();
+                jQuery('.sys_filtro_estrellas').attr('data-enabled', 'true');
+            } else {
+                jQuery('.guia-sub-top .sys_filtro_estrellas .filtro-estrella').hide();
+                jQuery('.guia-sub-top .sys_filtro_estrellas .indistinto').hide();
+                jQuery('.sys_filtro_estrellas').attr('data-enabled', 'false');
+            }
+
+            // Armamos Vista Listado
+            if (Type == 'taxonomy' || DatosJson.Categoria == '') {
+                $('.sys_titulo_seccion').html(DatosJson.Titulo);
+            } else {
+                $('.sys_titulo_seccion').html('<span class="sys_mapa_titulo_categoria">' + DatosJson.Categoria + ' /</span> ' + DatosJson.Titulo);
+            }
+
+            if (Params.ForceZoomMap !== undefined) {
+                if (Params.ForceZoomMap != '') {
+                    DatosJson.mapa_zoom = parseInt(Params.ForceZoomMap);
+                }
+            }
+
+
+            Parse_List_View(DatosJson);
+            Parse_Map_View(DatosJson);
+
+            if (Type == 'taxonomy' && Id == 'categoria_hoteleria') {
+                jQuery('.guia-sub-top .sys_filtro_estrellas .filtro-estrella').show();
+                jQuery('.guia-sub-top .sys_filtro_estrellas .indistinto').show();
+            }
+
+            $('.cargando').fadeOut();
+
+        },
+        error: function(xhr, ajaxOptions, thrownError) {
+            //alert(xhr.status + ' ' + thrownError);
+        }
+    });
+
+
+}
+
+function Parse_List_View(ObjetInfo) {
+	
+	//console.log( ObjetInfo );
+    var ContentId = '#vista_listado .contenedor';
+	
+	if( typeof $().slick('unslick') != 'undefined' && $('#vista_listado .contenedor, #vista_listado .paginacion').hasClass('slick-initialized') ){
+		$('#vista_listado .contenedor, #vista_listado .paginacion').slick('unslick'); /* ONLY remove the classes and handlers added on initialize */
+	}
+    jQuery(ContentId).html('');
+    var Datos = ObjetInfo.Datos;
+    var Contador_Bloques = 0;
+    var Cantidad_Paginas = 1;
+
+    var HTML = '';
+    var HTML_PAGINACION = '';
+
+    if (Datos.length == 0) {
+
+        jQuery(ContentId).append(
+            '<div>No hay resultados para mostrar.</div>'
+        );
+        jQuery('#vista_listado .paginacion').html('');
+
+    } else {
+
+        for (var i = 0; i < Datos.length; i++) {
+
+
+            if (Contador_Bloques == 0) {
+                HTML_PAGINACION += '<div>' + (Cantidad_Paginas) + '</div>';
+
+                HTML += '<div class="blocques_conetnidos bloque_' + Cantidad_Paginas + '">';
+            }
+            var AddCLaseImagen = '';            
+            if (Datos[i].post_type != 'fauna' && Datos[i].post_type != 'hoteleria' && Datos[i].post_type != 'entretenimento' && Datos[i].post_type != 'aventura' && Datos[i].post_type != 'excursiones' && Datos[i].post_type != 'sitiosinteres' && Datos.post_type != 'serviciosciudad' && Datos[i].post_type != 'gastronomia' && Datos[i].post_type != 'turismo_aventura' && Datos[i].post_type != 'turismo_rural') {
+                AddCLaseImagen = 'sinimagen';
+            }
+
+            HTML += '<div class="contenedor_info ' + AddCLaseImagen + '">';
+
+            // IMAGEN
+            if (Datos[i].imagen != '') {
+                HTML += '<div class="post-thumbnail" style="background-image:url(' + Datos[i].imagen + ');">';
+                HTML += '<a href="' + Datos[i].url + '" class="sys_show_in_map" rel-id="' + Datos[i].Post_id + '"></a>';
+                HTML += '</div>';
+            } else {
+                // NO HAY IMAGEN
+                HTML += '<div class="post-thumbnail"></div>';
+            }
+            HTML += '<div class="post-content">';
+            // ESTRELLAS
+            if (Datos[i].Custom.Estrellas != '') {
+                HTML += '<div class="estrellas">';
+                for (var j = 1; j < 6; j++) {
+                    if (j <= parseInt(Datos[i].Custom.Estrellas)) {
+                        HTML += '<div class="estrella estrella_con_fondo"><i class="material-icons">&#xE838;</i></div>';
+                    } else {
+                        HTML += '<div class="estrella estrella_sin_fondo"><i class="material-icons">&#xE83A;</i></div>';
+                    }
+                }
+                HTML += '</div>';
+            }
+
+			var LAT = '';
+			var LNG = '';
+			if ( typeof Datos[i].Custom != 'undefined' ){
+				if ( typeof Datos[i].Custom.Mapas[0] != 'undefined' ){
+					if ( typeof Datos[i].Custom.Mapas[0].LAT != 'undefined' ){
+						LAT = Datos[i].Custom.Mapas[0].LAT;
+					}
+			
+					if ( typeof Datos[i].Custom.Mapas[0].LNG != 'undefined' ){
+						LNG = Datos[i].Custom.Mapas[0].LNG;
+					}
+				}
+			}
+		
+            // TITULO
+            HTML += '<div class="titulo"><a href="' + Datos[i].url + '" data-rel-lat="'+LAT+'" data-rel-lng="'+LNG+'" class="sys_show_in_map" rel-id="' + Datos[i].Post_id + '">' + Datos[i].titulo + '</a></div>';
+			
+			if( typeof Datos[i].post_status != undefined && Datos[i].post_status != null ){
+				HTML += '<div class="estado_entrada '+Datos[i].post_status+'">'+Datos[i].post_status+'</div>';
+			}
+			
+            //CONTENIDO
+            if (Datos[i].Content != '') {
+                HTML += '<div class="contenido" ss-container>';
+                HTML += '	<div>' + Datos[i].Content + '</div>';
+                HTML += '</div>';
+            }
+
+            // DIRECCION
+            HTML += '<div class="direccion">';
+            HTML += '	<div>' + Datos[i].Custom.Calle + '</div>';
+            HTML += '	<div>' + Datos[i].Custom.Altura + '</div>';
+            HTML += '</div>';
+
+            // TELEFONOS
+            HTML += '<div class="Telefonos">';
+            for (var j = 0; j < Datos[i].Custom.Telefonos.length; j++) {
+                HTML += '<div>' + Datos[i].Custom.Telefonos[j] + '</div>';
+            }
+            HTML += '</div>';
+			
+
+            // EMAILs
+            for (var j = 0; j < Datos[i].Custom.Emails.length; j++) {
+                HTML += '<div class="email-explicit">' + Datos[i].Custom.Emails[j] + '</div>';
+            }
+
+            // WEBs
+            HTML += '<div class="datos-extra">';
+            for (var j = 0; j < Datos[i].Custom.Webs.length; j++) {
+                if (Datos[i].Custom.Webs[j].Tipo == 'externo') {
+                    HTML += '<a href="' + Datos[i].Custom.Webs[j].Link + '" target="' + Datos[i].Custom.Webs[j].Target + '" title="Web"><i class="material-icons">&#xE894;</i> <span>web</span></a>';
+                } else {
+                    var Url = url_web_public + Datos[i].Custom.Webs[j].Link;
+                    HTML += '<a href="' + Url + '" target="' + Datos[i].Custom.Webs[j].Target + '" title="Ir a secci&oacute;n"><i class="material-icons">&#xE89E;</i> <span>ir a secci&oacute;n</span></a>';
+                }
+            }
+
+
+
+            //UBICACION
+            HTML += '<a href="' + Datos[i].url + '" class="sys_show_in_map" data-rel-lat="'+LAT+'" data-rel-lng="'+LNG+'" rel-id="' + Datos[i].Post_id + '"><i class="material-icons">&#xE55F;</i> <span>ubicación</span></a>';
+            console.log(Datos[i]);
+            
+            //WHATSAPP
+			if( typeof Datos[i].Custom.watssap != 'undefined' && Datos[i].Custom.watssap != null && Datos[i].Custom.watssap != '' ){
+				HTML += '<a href="https://api.whatsapp.com/send?phone='+Datos[i].Custom.watssap+'"  target="_blank" title="Whatsapp" class="" ><i class="fa fa-whatsapp"></i> <span>whatsapp</span></a>';
+			}
+
+            //ACCESIBLE
+            if (Datos[i].Custom.Accesibilidad == 1) {
+                HTML += '<span class="icono-accesible"><i class="material-icons">&#xE914;</i><span>accesible</span></span>';
+            }
+            HTML += '</div>';
+
+
+            HTML += '</div>';
+            HTML += '</div>';
+
+            Contador_Bloques++;
+            if (Contador_Bloques >= 6) {
+                Contador_Bloques = 0;
+                Cantidad_Paginas++;
+                HTML += '</div>';
+            }
+        }
+
+        if (Contador_Bloques != 0) {
+            HTML += '</div>';
+        }
+
+        jQuery(ContentId).append(HTML);
+        jQuery('#vista_listado .paginacion').html(HTML_PAGINACION);
+
+        $('#vista_listado .contenedor').slick({
+            slidesToShow: 1,
+            slidesToScroll: 1,
+            arrows: false,
+            asNavFor: '.paginacion',
+            infinite: false,
+            swipeToSlide: false,
+            swipe: false,
+            draggable: false
+        });
+
+        $('#vista_listado .paginacion').slick({
+            slidesToShow: 5,
+            slidesToScroll: 1,
+            asNavFor: '.contenedor',
+            dots: false,
+            arrows: true,
+            focusOnSelect: true,
+            infinite: false,
+            prevArrow: '<button type="button" class="slick-prev"><i class="material-icons">&#xE314;</i></button>',
+            nextArrow: '<button type="button" class="slick-next"><i class="material-icons">&#xE315;</i></button>',
+            swipeToSlide: false,
+            swipe: false,
+            draggable: false
+        });
+
+
+        SimpleScrollbar.initAll();
+
+    }
+
+    //$('.cargando').fadeOut();
+
+}
+
+
+function Parse_Map_View(ObjetInfo) {
+	if( typeof ClearAllMarkers == 'function' ){
+		ClearAllMarkers();
+	}
+    var Datos = ObjetInfo.Datos;
+
+    // Aplicamos Zoom
+    if (ObjetInfo.mapa_zoom != '') {
+		if( typeof Set_Map_Zoom == 'function' ){
+			Set_Map_Zoom(ObjetInfo.mapa_zoom);
+		}
+    }
+
+    // Centramos Mapa
+    if (ObjetInfo.mapa_Center != '') {
+        if (ObjetInfo.mapa_Center.lat != '' && ObjetInfo.mapa_Center.lng != '') {
+			if( typeof Centrar_Mapa == 'function' ){
+				Centrar_Mapa(ObjetInfo.mapa_Center.lat, ObjetInfo.mapa_Center.lng);
+			}
+        }
+    }
+
+    for (var i = 0; i < Datos.length; i++) {
+        var InFoWindowHTML = '';
+        if (Datos[i].Custom.infowindow_type != '') {
+            if (Datos[i].Custom.infowindow_type == 'InfoWindowsSinTexto') {
+                InFoWindowHTML = InfoWindowsSinTexto(Datos[i]);
+            } else if (Datos[i].Custom.infowindow_type == 'InfoWindowsConTexto') {
+                InFoWindowHTML = InfoWindowsConTexto(Datos[i]);
+            } else if (Datos[i].Custom.infowindow_type == 'SinInfoWindow') {
+                InFoWindowHTML = '';
+            }
+        }
+		if( typeof AddMarker == 'function' ){
+			for (var j = 0; j < Datos[i].Custom.Mapas.length; j++) {
+				if (Datos[i].Custom.Mapas[j].LAT != '' && Datos[i].Custom.Mapas[j].LNG != '') {
+					AddMarker(Datos[i].Post_id, Datos[i].Custom.Mapas[j].LAT, Datos[i].Custom.Mapas[j].LNG, Datos[i].mapa_icon, Datos[i].titulo, InFoWindowHTML);
+				}
+			}
+		}
+    }
+}
+
+
+function InfoWindowsSinTexto(Datos) {
+    var HTML = '';
+
+
+    // IMAGEN
+
+    var AddCLaseImagen = '';
+    if (Datos.post_type != 'fauna' && Datos.post_type != 'hoteleria' && Datos.post_type != 'entretenimento' && Datos.post_type != 'aventura' && Datos.post_type != 'excursiones' && Datos.post_type != 'sitiosinteres' && Datos.post_type != 'serviciosciudad' && Datos.post_type != 'gastronomia' && Datos.post_type != 'turismo_aventura' && Datos.post_type != 'turismo_rural') {
+        AddCLaseImagen = 'sinimagen';
+    }
+    HTML += '<div class="infowindow"><div class="contenedor_info ' + AddCLaseImagen + '">';
+
+
+    if (Datos.imagen != '') {
+        HTML += '<div class="infowindow-thumb" style="background-image:url(' + Datos.imagen + ')"></div>';
+    } else {
+        // NO HAY IMAGEN
+        HTML += '<div class="infowindow-thumb"></div>';
+    }
+
+    // ESTRELLAS
+    if (Datos.Custom.Estrellas != '') {
+        HTML += '<div class="estrellas">';
+        for (var j = 1; j < 6; j++) {
+            if (j <= parseInt(Datos.Custom.Estrellas)) {
+                HTML += '<div class="estrella estrella_con_fondo"><i class="material-icons">&#xE838;</i></div>';
+            } else {
+                HTML += '<div class="estrella estrella_sin_fondo"><i class="material-icons">&#xE83A;</i></div>';
+            }
+        }
+        HTML += '</div>';
+    }
+
+
+    // TITULO
+    HTML += '<div class="tituloinfowindow">' + Datos.titulo + '</div>';
+	if( typeof Datos.post_status != undefined && Datos.post_status != null ){
+		HTML += '<div class="estado_entrada '+Datos.post_status+'">'+Datos.post_status+'</div>';
+	}
+
+    //CONTENIDO
+    if (Datos.Content != '') {
+        HTML += '<div class="contenido" ss-container>';
+        HTML += '	<div>' + Datos.Content + '</div>';
+        HTML += '</div>';
+    }
+
+    // DIRECCION
+    var primerTelefono = Datos.Custom.Telefonos[0];
+    HTML += '<div class="direccion">';
+    HTML += '	<div>' + Datos.Custom.Calle + '</div>';
+    HTML += '	<div>' + Datos.Custom.Altura + '</div>';
+    if (primerTelefono != '' && primerTelefono != undefined && primerTelefono != null) {
+        HTML += '	<div>' + primerTelefono + '</div>';
+    }
+    HTML += '</div>';
+
+    // EMAILs
+    for (var j = 0; j < Datos.Custom.Emails.length; j++) {
+        HTML += '<div class="email-explicit">' + Datos.Custom.Emails[j] + '</div>';
+    }
+
+    // TELEFONOS
+    /*HTML += '<div class="Telefonos">';
+    for(var j=0; j< Datos.Custom.Telefonos.length ;j++){ 
+    	HTML += '<div>'+Datos.Custom.Telefonos[j]+'</div>';
+    }
+    HTML += '</div>';*/
+
+    // WEBs
+    HTML += '<div class="datos-extra">';
+    for (var j = 0; j < Datos.Custom.Webs.length; j++) {
+        if (Datos.Custom.Webs[j].Tipo == 'externo') {
+            HTML += '<a href="' + Datos.Custom.Webs[j].Link + '" target="' + Datos.Custom.Webs[j].Target + '"><i class="material-icons">&#xE894;</i></a>';
+        } else {
+            var Url = url_web_public + Datos.Custom.Webs[j].Link;
+            HTML += '<a href="' + Url + '" target="' + Datos.Custom.Webs[j].Target + '"><i class="material-icons">&#xE89E;</i></a>';
+        }
+    }
+
+
+
+    //ACCESIBLE
+    if (Datos.Custom.Accesibilidad == 1) {
+        HTML += '<span class="icono-accesible"><i class="material-icons">&#xE914;</i></span>';
+    }
+    HTML += '</div>';
+
+    HTML += '</div></div>';
+    return HTML;
+
+}
+
+function InfoWindowsConTexto(Datos) {
+    var HTML = '';
+    var AddCLaseImagen = '';
+    if (Datos.post_type != 'fauna' && Datos.post_type != 'hoteleria' && Datos.post_type != 'entretenimento' && Datos.post_type != 'aventura' && Datos.post_type != 'excursiones' && Datos.post_type != 'sitiosinteres' && Datos.post_type != 'serviciosciudad' && Datos.post_type != 'gastronomia' && Datos.post_type != 'turismo_aventura' && Datos.post_type != 'turismo_rural') {
+        AddCLaseImagen = 'sinimagen';
+    }
+    HTML += '<div class="infowindow infowindowcontexto"><div class="contenedor_info ' + AddCLaseImagen + '">';
+
+
+    // IMAGEN
+    if (Datos.imagen != '') {
+        HTML += '<div class="infowindow-thumb" style="background-image:url(' + Datos.imagen + ')"></div>';
+    } else {
+        // NO HAY IMAGEN
+        HTML += '<div class="infowindow-thumb"></div>';
+    }
+
+    // ESTRELLAS
+    if (Datos.Custom.Estrellas != '') {
+        HTML += '<div class="estrellas">';
+        for (var j = 1; j < 6; j++) {
+            if (j <= parseInt(Datos.Custom.Estrellas)) {
+                HTML += '<div class="estrella estrella_con_fondo"><i class="material-icons">&#xE838;</i></div>';
+            } else {
+                HTML += '<div class="estrella estrella_sin_fondo"><i class="material-icons">&#xE83A;</i></div>';
+            }
+        }
+        HTML += '</div>';
+    }
+
+    // TITULO
+    HTML += '<div class="tituloinfowindow">' + Datos.titulo + '</div>';
+	if( typeof Datos.post_status != undefined && Datos.post_status != null ){
+		HTML += '<div class="estado_entrada '+Datos.post_status+'">'+Datos.post_status+'</div>';
+	}
+
+    //CONTENIDO
+    if (Datos.Content != '') {
+        HTML += '<div class="contenido" ss-container>';
+        HTML += '	<div>' + Datos.Content + '</div>';
+        HTML += '</div>';
+    }
+
+    // DIRECCION
+    HTML += '<div class="direccion">';
+    HTML += '	<div>' + Datos.Custom.Calle + '</div>';
+    HTML += '	<div>' + Datos.Custom.Altura + '</div>';
+    var primerTelefono = Datos.Custom.Telefonos[0];
+    if (primerTelefono != '' && primerTelefono != undefined && primerTelefono != null) {
+        HTML += '	<div>' + primerTelefono + '</div>';
+    }
+    HTML += '</div>';
+
+    // TELEFONOS
+    /*HTML += '<div class="Telefonos">';
+    for(var j=0; j< Datos.Custom.Telefonos.length ;j++){ 
+    	HTML += '<div>'+Datos.Custom.Telefonos[j]+'</div>';
+    }
+    HTML += '</div>';*/
+
+    // EMAILs
+    for (var j = 0; j < Datos.Custom.Emails.length; j++) {
+        HTML += '<div class="email-explicit">' + Datos.Custom.Emails[j] + '</div>';
+    }
+
+    // WEBs
+    HTML += '<div class="datos-extra">';
+    for (var j = 0; j < Datos.Custom.Webs.length; j++) {
+        if (Datos.Custom.Webs[j].Tipo == 'externo') {
+            HTML += '<a href="' + Datos.Custom.Webs[j].Link + '" target="' + Datos.Custom.Webs[j].Target + '"><i class="material-icons">&#xE894;</i></a>';
+        } else {
+            var Url = url_web_public + Datos.Custom.Webs[j].Link;
+            HTML += '<a href="' + Url + '" target="' + Datos.Custom.Webs[j].Target + '"><i class="material-icons">&#xE89E;</i></a>';
+        }
+    }
+
+
+
+    //ACCESIBLE
+    if (Datos.Custom.Accesibilidad == 1) {
+        HTML += '<span class="icono-accesible"><i class="material-icons">&#xE914;</i></span>';
+    }
+    HTML += '</div>';
+
+    HTML += '</div></div>';
+
+    return HTML; 
+}
+
+ 
+function vista_mapa() {
+    jQuery('.vista').hide();
+    jQuery('.vistas div').removeClass('active');
+    jQuery('#vista_mapa').show();
+    jQuery('.vistas[data-id="vista_mapa"]').addClass('active');
+    RefreshMapa();
+}

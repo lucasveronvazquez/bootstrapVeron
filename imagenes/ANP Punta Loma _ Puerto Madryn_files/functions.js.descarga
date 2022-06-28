@@ -1,0 +1,871 @@
+// Browser detection for when you get desparate. A measure of last resort.
+// http://rog.ie/post/9089341529/html5boilerplatejs
+
+// var b = document.documentElement;
+// b.setAttribute('data-useragent',  navigator.userAgent);
+// b.setAttribute('data-platform', navigator.platform);
+
+// sample CSS: html[data-useragent*='Chrome/13.0'] { ... }
+
+
+// remap jQuery to $
+(function ($) {
+
+	function scaleToFill() {
+		$('video.video-background').each(function(index, videoTag) {
+		   var $video = $(videoTag),
+		       videoRatio = videoTag.videoWidth / videoTag.videoHeight,
+		       tagRatio = $video.width() / $video.height(),
+		       val;
+
+		   if (videoRatio < tagRatio) {
+		       val = tagRatio / videoRatio * 1.02;
+		   } else if (tagRatio < videoRatio) {
+		       val = videoRatio / tagRatio * 1.02;
+		   }
+
+		   $video.css('transform','scale(' + val  + ',' + val + ')');
+		});    
+	}
+
+	function tablaResponsive() {		
+		var anchoScreen = $(window).width();
+		if(anchoScreen > 1200) {
+			$('.tr .promocion').unwrap();
+			$('.promociones').each(function(){
+				var divs = $(this).children('.promocion');
+				for(var i = 0, len = divs.length; i < len; i+=4){          
+					divs.slice(i, i+4).wrapAll("<div class='tr'></div>");
+				}
+				if(divs.length == 3 ) {
+					$(this).find('.tr').append('<div class="promocion empty"></div>');
+				} else if (divs.length == 2 ) {					
+					$(this).find('.tr').append('<div class="promocion empty"></div>').append('<div class="promocion empty"></div>');
+				} else if (divs.length == 1 ) {
+					$(this).find('.tr').append('<div class="promocion empty"></div>').append('<div class="promocion empty"></div>').append('<div class="promocion empty"></div>');
+				}
+			});			
+		} else if(anchoScreen > 760 && anchoScreen <= 1199) {
+			$('.tr .promocion').unwrap();
+			$('.promociones').each(function(){
+				var divs = $(this).children('.promocion');
+				for(var i = 0, len = divs.length; i < len; i+=3){          
+					divs.slice(i, i+3).wrapAll("<div class='tr'></div>");
+				}
+				if (divs.length == 2 ) {
+					$(this).find('.tr').append('<div class="promocion empty"></div>');
+				} else if (divs.length == 1 ) {
+					$(this).find('.tr').append('<div class="promocion empty"></div>').append('<div class="promocion empty"></div>');
+				}
+			});
+		} else if(anchoScreen > 480 && anchoScreen <= 759) {
+			$('.tr .promocion').unwrap();
+			$('.promociones').each(function(){
+				var divs = $(this).children('.promocion');
+				for(var i = 0, len = divs.length; i < len; i+=2){          
+					divs.slice(i, i+2).wrapAll("<div class='tr'></div>");
+				}
+				if (divs.length == 1 ) {
+					$(this).find('.tr').append('<div class="promocion empty"></div>');
+				}
+			});
+		} else {
+			$('.tr .promocion').unwrap();
+			$('.promociones').each(function(){
+				var divs = $(this).children('.promocion');
+				for(var i = 0, len = divs.length; i < len; i+=1){          
+					divs.slice(i, i+1).wrapAll("<div class='tr'></div>");
+				}
+			});
+		}
+	}
+
+
+	/* trigger when page is ready */
+	$(document).ready(function (){
+
+
+		/* Futuro Viaje */
+		$('.proveedor-imgs').slick({
+			dots:true,
+			prevArrow:'<button type="button" class="slick-prev"><i class="material-icons">&#xE314;</i></button>',
+			nextArrow:'<button type="button" class="slick-next"><i class="material-icons">&#xE315;</i></button>',
+		});
+		$('.futuroviaje-proveedores .categorias').css({'min-height':$('.futuroviaje-proveedores .proveedores').outerHeight()});
+		$.fn.clickToggle = function(a, b) {
+		return this.on("click", function(ev) { [b, a][this.$_io ^= 1].call(this, ev) })
+		};
+		$('.proveedores-filtrar').clickToggle(function(ev) {
+			$(this).html('<i class="fa fa-times" aria-hidden="true"></i>&nbsp;&nbsp;Cerrar');
+			$('.categorias').show();
+		}, function(ev) {
+			$(this).html('<i class="fa fa-sliders" aria-hidden="true"></i>&nbsp;&nbsp;Filtrar');
+			$('.categorias').hide();			
+		});	
+		
+		
+		
+
+		var posFooter = $('#footer').position().top - 130;
+		function absoluteToFixed() {
+		if ($(window).scrollTop() >= 10 && $(window).scrollTop() < posFooter) { 
+		    $('.vistas, .vercategorias').css({'position':'fixed', 'top':'60px', 'bottom':'auto'});
+		} else if($(window).scrollTop() > posFooter) {
+			$('.vistas, .vercategorias').css({'position':'absolute', 'bottom':'10px', 'top':'auto'});
+		}
+		}
+
+		/*Video Aventura*/
+		$('.closevideo').click(function(){
+			$(this).parent().hide();
+			$(".videofull video").each(function () { this.pause() });
+			$(".videofull video").each(function () { this.currentTime = 0; });
+		});
+
+		$('.vervideo').click(function(){
+			$('.videofull').fadeIn('fast');
+			$(".videofull video").each(function () { this.play() });			
+		});
+		
+		setTimeout(function(){
+			var ventana = $(window);
+			if(ventana.width() / ventana.height() > 2.45) {
+				$('.videofull video').css({'width':'100%','height':'auto'});
+			} else {
+				$('.videofull video').css({'height':'100%','width':'auto'});
+			}
+		}, 0);
+
+		/*Bajar*/
+		$('.bajar').click(function(){
+			var postTop = $('.post').position().top;
+			$('body,html').animate({'scrollTop':postTop},500);
+		});
+
+		/*Open / Close Menu*/
+		$('#nav-toggle').click(function(e){
+			e.preventDefault(); 			
+			$(this).toggleClass('active');
+			$('#sidebar').toggleClass('visible');
+			$(this).find('p').text(function(i, text){
+				if(document.documentElement.lang=="en-US"){
+          			return text === "MENU" ? "CLOSE" : "MENU";
+          		} else {
+          			return text === "MENÚ" ? "CERRAR" : "MENÚ";
+          		}
+      		});
+      		$('body,html').toggleClass('sidebar-abierto');
+      		$('.sidebar-bar').toggleClass('active');
+      		$('.overlay').fadeOut();
+      		$('#megamenu').hide();
+      		$('#nav ul li').removeClass('active');
+      		$('.triangulito').hide();
+      		$('.menu').css('left','0');
+		});
+
+		/*Menu*/
+		$('.page_parent').click(function(e){
+			e.preventDefault();
+			var dataID = $(this).attr('data-id');
+			$('.menu').stop(true,true).animate({'left':'-100%'},250);
+			$('.submenu[data-id='+dataID+']').show();
+		});
+		/*$('.subpage_parent').click(function(e){
+			e.preventDefault();
+			var dataID = $(this).attr('data-id');
+			$('.menu').stop(true,true).animate({'left':'-200%'},250);
+			$('.subsubmenu[data-id='+dataID+']').show();			
+		});*/
+		$('.submenu > .volver').click(function(){
+			$('.menu').css('left','0');
+			$('.submenu').hide();
+		});
+		$('.subsubmenu > .volver').click(function(){
+			$('.menu').css('left','-100%');
+			$('.subsubmenu').hide();
+		});
+		
+
+		/*Busqueda*/
+		$('#opensearch').click(function(){
+			$('#searchform').toggleClass('visible');
+			$('#sidebar').removeClass('visible');
+			$('.sidebar-bar').removeClass('active');
+			$('#nav-toggle').removeClass('active');
+			$('body,html').removeClass('sidebar-abierto');
+			$(this).toggleClass('visible');
+			if(document.documentElement.lang=="en-US"){
+				$('#nav-toggle').find('p').text('MENU');
+			} else {
+				$('#nav-toggle').find('p').text('MENÚ');
+			}
+		});
+		
+		$("#opensearch.visible").click(function() {			
+			$('#searchform').submit();
+		});
+
+		$('body').click(function(e){ 			
+			if (e.target.id == 'opensearch' || $(e.target).parents('#searchform').length > 0) {} else {
+				$('#searchform, #opensearch').removeClass('visible');			
+			}
+			if (e.target.id == 'lenguaje' || $(e.target).parents('#lenguaje').length > 0) {} else {
+				$('.language-chooser').stop(true,true).fadeOut(150);			
+			}			
+		});
+
+		/*Idioma*/
+		function getCookie(name) {
+			var value = "; " + document.cookie;
+			var parts = value.split("; " + name + "=");
+			if (parts.length == 2) return parts.pop().split(";").shift();
+		}
+		var idioma = getCookie('qtrans_front_language');
+		$('.leng-selected').removeClass('es').removeClass('en').addClass(idioma).text(idioma);
+		$('.leng-selected').click(function(){
+			$('.language-chooser').stop(true,true).fadeToggle(150);
+			$('#sidebar').removeClass('visible');
+			$('.sidebar-bar').removeClass('active');
+			$('#nav-toggle').removeClass('active');
+			$('body,html').removeClass('sidebar-abierto');
+			if(document.documentElement.lang=="en-US"){
+				$('#nav-toggle').find('p').text('MENU');
+			} else {
+				$('#nav-toggle').find('p').text('MENÚ');
+			}
+		});
+
+		/*Megamenu*/
+		$('#nav ul li a').not('#nav ul li a[data-id="4358"]').click(function(e){			
+			var menuId = $(this).attr('data-id');
+			var parent = $(this).parent().parent();
+			var allParents = $(this).parent().parent().parent().find('li');
+			if(menuId == 6 || menuId == 360) return; //Si hacen click en Guia de la ciudad lo de abajo no va 
+			e.preventDefault();	
+			$('#sidebar').removeClass('visible');
+			$('.sidebar-bar').removeClass('active');
+			$('#nav-toggle').removeClass('active');
+			if(document.documentElement.lang=="en-US"){
+				$('#nav-toggle').find('p').text("MENU");
+			} else {
+				$('#nav-toggle').find('p').text("MENÚ");
+			}
+			$('body,html').removeClass('sidebar-abierto');
+			if(parent.hasClass('active')) { 
+				$('.overlay').fadeOut();
+				$('#megamenu').hide();
+				allParents.removeClass('active');
+				$('.triangulito').hide();
+			} else {
+				allParents.removeClass('active');
+				$('.triangulito').hide();
+				$('.overlay').fadeIn();
+				parent.addClass('active');
+				$('#megamenu').stop(true,true).fadeIn();
+				$('.megamenu-links').hide();
+				$('.megamenu-links[data-id='+menuId+']').show();
+				parent.find('.triangulito').show();
+			}
+		});
+		$('.overlay').click(function(){
+			$(this).fadeOut();
+			$('#megamenu').hide();
+			$('#nav ul li').removeClass('active');
+			$('.triangulito').hide();
+			cerrarPopup();
+		});
+
+
+		
+    	var scroll = $(window).scrollTop();
+			if (scroll >= $('#header').outerHeight()) {
+				$('body').addClass("scrolled");
+			} else if (scroll == 0) {
+				$('body').removeClass("scrolled");
+			}
+    	
+    	/*Header Scroll*/
+		$(window).scroll(function() {    
+			var scroll = $(window).scrollTop();
+			if (scroll >= $('#header').outerHeight()) {
+				$('body').addClass("scrolled");
+			} else if (scroll == 0) {
+				$('body').removeClass("scrolled");
+			}
+		}); 
+
+		/*Temporadas Inicio*/
+		$('.estacion')
+		.on('mouseenter', function(){
+        	$(this).stop().addClass('hovered').siblings('.estacion').stop().addClass('nothovered').removeClass('hovered');
+    	})
+    	.on('mouseleave', function(){
+        	$(this).add($(this).siblings('.estacion')).removeClass('hovered').removeClass('nothovered');
+    	});
+
+    	
+
+    	/*Popup Ajax*/
+		$.ajaxSetup({cache:false, type: 'POST',     headers: { "cache-control": "no-cache" }});
+        $(document).on('click', '.ajax', function(e){
+        	e.preventDefault();        	
+            var post_link = $(this).attr("href"); 
+            var data_id = $(this).attr('data-id');
+            $('.popup .popup-content').removeClass('popupchico');
+            if(data_id == 'popupchico') {
+            	$('.popup .popup-content').addClass('popupchico');
+            }
+    		$('.popup, .overlay').stop(true,true).fadeIn();
+            $('.popup .popup-content').html('<div class="loadvideo"><div class="spinner"></div></div>');
+            $('.popup .popup-content').load(post_link);			
+        	return false;
+        });
+
+    	/*Cerrar Popup*/
+    	$('.popup-td').click(function(e){
+		    if ($(e.target).hasClass('popup-td')) {
+		       cerrarPopup();
+		    }
+    	});
+    	$(document).on('click', '.cerrarpopup', function(){
+    		cerrarPopup();
+    	});
+
+    	function cerrarPopup() {
+    		$('.popup, .popup-contacto, .popup-suscribirse, .popup-reserva, .popup-reserva-anonima, .popup-futuroviaje').stop(true,true).fadeOut();
+    		$('.overlay').stop(true,true).fadeOut().css('z-index','200');
+    	}
+
+    	$(document).on('click', '.abrircontacto a', function(e){
+    		e.preventDefault();
+    		$('.popup-contacto, .overlay').stop(true,true).fadeIn();
+    	});
+
+    	$(document).on('click', '.abrirsuscribir a', function(e){
+    		e.preventDefault();
+    		$('.popup-suscribirse, .overlay').stop(true,true).fadeIn();
+    	});
+
+    	$(document).on('click', '.btn-reservar', function(e){
+    		e.preventDefault();
+    		var prestador 		= $(this).attr('data-title');
+    		var correoPrestador = $(this).attr('data-mail');
+    		var tipoPrestador 	= $(this).attr('data-type');
+    		$('#prestador input').val(prestador);
+    		$('.popup-reserva .popup-titulo span').text(prestador);
+    		$('#emailprestador input').val(correoPrestador);
+    		$('.popup-reserva, .overlay').stop(true,true).fadeIn().css('z-index','9999');
+    		$('.popup-reserva .contact-promo').hide();
+    		$('.popup-reserva .contact-promo.'+tipoPrestador).show();
+    		if($(window).width() < 960 ) {
+    			var positionTop = $(this).parent().offset().top;
+    			console.log(positionTop);
+    			$('.popup-reserva').css({'top': positionTop});
+    			$('body, html').stop(true,true).animate({'scrollTop':$('.popup-reserva').offset().top - 20 });
+    		} else {
+    			$('.popup-reserva').css({'top': 0});
+    			$('body, html').stop(true,true).animate({'scrollTop':$('.popup-reserva').offset().top- 20 });
+    		}
+    	});
+
+    	$(document).on('click', '.btn-reservar-anonima', function(e){
+    		e.preventDefault();
+    		var prestador 		= $(this).attr('data-title');
+    		var correoPrestador = $(this).attr('data-mail');
+    		var tipoPrestador 	= $(this).attr('data-type');
+    		$('#prestador input').val(prestador);
+    		$('.popup-reserva-anonima .popup-titulo span').text(prestador);
+    		$('#emailprestador input').val(correoPrestador);
+    		$('.popup-reserva-anonima, .overlay').stop(true,true).fadeIn().css('z-index','9999');
+    		if($(window).width() < 960 ) {
+    			var positionTop = $(this).parent().offset().top;
+    			console.log(positionTop);
+    			$('.popup-reserva-anonima').css({'top': positionTop});
+    			$('body, html').stop(true,true).animate({'scrollTop':$('.popup-reserva-anonima').offset().top - 20 });
+    		} else {
+    			$('.popup-reserva-anonima').css({'top': 0});
+    			$('body, html').stop(true,true).animate({'scrollTop':$('.popup-reserva-anonima').offset().top- 20 });
+    		}
+    	});
+
+
+    	/*Social HUB*/
+    	var feed = null;
+        if($('#instafeed').length > 0 ){
+            var feed = new Instafeed({ 
+                get: 'user',						
+                userId: 2049566323,						
+				accessToken: '2049566323.1677ed0.2fd6d55fd0574b2793af3c66c1aea5f8',
+                template: '<a href="{{link}}" target="_blank" title="Puerto Madryn"><img src="{{image}}" /></a>',
+                limit: 9,
+                sortBy: 'most-recent',
+                resolution :'low_resolution'					
+            });
+            feed.run();
+        }
+
+        /*Guia de la ciudad*/
+        /*$('.vista').css({'height':$(window).height()*0.75});*/
+        $(document).on('click', '.vistas div', function(){
+        	var idVista = $(this).attr('data-id');
+        	$('.vista').hide();
+        	$('.vistas div').removeClass('active');
+        	$('#'+idVista).show();
+        	$(this).addClass('active');
+        	$('.contenedor').slick('setPosition'); 
+        	$(this).parent().parent().removeClass('vista_mapa');
+        	$(this).parent().parent().removeClass('vista_listado');
+        	$(this).parent().parent().addClass(idVista);
+			
+			var posFooter = $('#footer').position().top - 130;
+			$(window).scroll(function() {
+				absoluteToFixed();
+			});
+
+			if($(window).width() < 1280) {
+				$('.menu-guia').removeClass('visible');
+			}
+
+        });
+
+		
+        
+        $('.guia-parent').click(function(){
+
+			// Sacamos Filtro Accesibilidad en Secciones principales
+			//$('.accesible').removeClass( 'activo' );
+
+        	var menuId = $(this).attr('data-id');
+			$('.guia-parent').removeClass('selected');
+			$(this).addClass('selected');
+			$(this).addClass('open');
+        	if($('.guia-sub.'+menuId).length) {
+        		$('.guia-parent, .seleccione_categoria').stop(true,true).animate({'margin-left':'-100%'},300);
+        		$('.guia-sub.'+menuId).stop(true,true).animate({'left':'0'},300);
+        	}
+        });
+
+        $('.guia-volver').click(function(e){
+			$('.guia-parent, .seleccione_categoria').stop(true,true).animate({'margin-left':'0'},300);
+			$('.guia-sub').stop(true,true).animate({'left':'100%'},300);
+			$('.guia-sub.open').removeClass('open');
+			$('.guia-parent.open').removeClass('open');
+			jQuery('.guia-sub .menu-guia-item').removeClass('selected');
+
+			// Sacamos FIltro Accesibilidad
+			$('.accesible').removeClass( 'activo' );
+
+			var Objet = jQuery('.guia-parent.menu-guia-item.selected').find('.sys_ajax') ? jQuery('.guia-parent.menu-guia-item.selected').find('.sys_ajax') : '';
+			Call_Ajax_From_Objet( Objet, { 'NotOpenSubSeccion':true} );
+			$('.cargando').fadeIn();
+        });
+
+        $('.guia-volver-page').click(function(e){
+			$(this).parent().toggleClass('active');
+        });
+        $('.open-sub-page').click(function(e){
+        	e.preventDefault();
+        	var link = $(this).data('href');
+        	$('.guia-sub-menu-page[data-id="'+link+'"]').addClass('active');
+        	$('.guia-sub-menu-page[data-id="'+link+'"]').find('a').first().trigger('click');
+        });
+        $('.menu-guia-cruceros .menu-guia-item a').click(function(){
+        	$('.menu-guia-cruceros .menu-guia-item a').removeClass('active');
+        	$(this).addClass('active');
+        });
+
+
+
+
+
+        $('.vercategorias').click(function(){
+        	$('.menu-guia').addClass('visible');
+        });
+
+        $('.cerrarcategorias, .guia-sub-top .guia-cerrar').click(function(){
+        	$('.menu-guia').removeClass('visible');
+			$('.guia-sub.open').removeClass('open');
+        })
+
+        $('.guia-sub .menu-guia-item').click(function(){
+        	$('.menu-guia').removeClass('visible');
+        });
+
+        $('.menu-guia-item').click(function(){
+        	$('.cargando').fadeIn();
+        	$('.menu-guia').removeClass('visible');			
+        });
+        $('#map_page .menu-guia-item').click(function(){
+        	var offsetTop = $('#map_page #main').offset().top;
+        	$("html, body").animate({ scrollTop: offsetTop - 145 }, 800);
+        });
+
+
+        /*Page*/
+        if($(window).width() < 760) {
+	    	$('.slide-mobile').not('.slick-initialized').slick({
+				dots:false,
+				arrows:true,
+				infinite:true,
+				autoplay:false,
+				slidesToShow: 1,
+				slidesToScroll: 1
+    		});
+    	} else {
+			$('.slide-mobile.slick-initialized').slick('unslick');
+    	}
+
+    	$('.contenido-txt-txt').each(function(){
+			var scrollHeight = $(this)[0].scrollHeight;
+			var pHeight = $(this).height();
+			if(scrollHeight > pHeight) {
+				if(document.documentElement.lang=="en-US"){
+					$(this).parent().append('<div class="expandir"><span>See more</span></div>');
+				} else {
+					$(this).parent().append('<div class="expandir"><span>Ampliar</span></div>');
+				}
+						
+			}
+		});
+		$(document).on('click','.expandir',function(){
+			$(this).parent().find('.contenido-txt-txt').toggleClass('expandido');
+			$(this).toggleClass('activo');
+			$(this).find('span').text(function(i, text){
+				if(document.documentElement.lang=="en-US"){
+					return text === "See more" ? "See less" : "See More";
+				} else {
+					return text === "Ampliar" ? "Ver Menos" : "Ampliar";
+				}          		
+     		 })
+		});
+		
+		//Tabla Promociones
+		tablaResponsive();
+
+		$(document).on('click', '.accesos-promociones .grid-item', function(){
+			var item = $(this).attr('data-id');
+			$('.accesos-promociones').hide();
+			$('.content-promociones.promo-'+item).fadeIn('fast');
+			var posTop = $('.content-promociones.promo-'+item).position().top;
+			$('body,html').stop(true,true).animate({'scrollTop':posTop - 200},1000);
+			$('#promocionesHash').addClass('conPromos');
+		});
+		$(document).on('click', '.volver-promos', function(){			
+			$('.content-promociones').hide();
+			$('.accesos-promociones').fadeIn('fast');
+			$('.grid').masonry();
+			var posTop = $('.accesos-promociones').position().top;
+			$('body,html').stop(true,true).animate({'scrollTop':posTop - 200},1000);
+			$('#promocionesHash').removeClass('conPromos');
+		});
+
+		var now = new Date();		
+		now.setDate(now.getDate() + 7);	 //Nº de Dias desde el actual	
+		var day = ("0" + now.getDate()).slice(-2);
+		var month = ("0" + (now.getMonth() + 1)).slice(-2);
+		var today = now.getFullYear()+"-"+(month)+"-"+(day);
+		$('#datePickerDesde').val(today);
+		$("#datePickerDesde").attr("min", today);
+
+		var tomorrow = new Date();
+		tomorrow.setDate(tomorrow.getDate() + 8); //Nº de Dias desde el actual
+		var Tday = ("0" + tomorrow.getDate()).slice(-2);
+		var Tmonth = ("0" + (tomorrow.getMonth() + 1)).slice(-2);
+		var Ttoday = tomorrow.getFullYear()+"-"+(Tmonth)+"-"+(Tday);
+		$('#datePickerHasta').val(Ttoday);
+		$("#datePickerHasta").attr("min", Ttoday);
+
+
+		//Alerta Bancos Casas de cambio
+		$(document).on('click','body.page-id-4406 .menu-guia-item a[rel-id="32"]', function(){
+            $('.popup .popup-content').addClass('popupchico');            
+    		$('.popup, .overlay').stop(true,true).fadeIn();            
+            $('.popup .popup-content').html('<div class="cerrarpopup"><i class="material-icons">close</i></div>'+textoServiciosCruceristas);			
+        	return false;
+		});
+
+
+		
+		
+	});
+
+	$(window).load(function(){		
+
+		/*Grilla*/
+		$('.grid').masonry({
+			itemSelector: '.grid-item',
+			gutter: 0,
+			percentPosition: true,
+			columnWidth: '.grid-sizer',			
+		});
+		
+		/*Video*/
+		scaleToFill();
+		$('.loadvideo').hide();
+		$('.video').css('opacity','1');
+
+		/*Social HUB*/
+    	$('.social-inicio .facebook').css({'height':$('.social-inicio .instagram').outerHeight()}); 
+
+
+		/*Guia de la ciudad*/
+		if(!$('.contenedor').hasClass('slick-initialized')) {
+			$('.contenedor').slick({
+				slidesToShow: 1,
+				slidesToScroll: 1,
+				arrows: false,
+				asNavFor: '.paginacion',
+				infinite: false,
+				swipeToSlide:false,
+				swipe: false,
+				draggable:false
+			});
+		}
+		if(!$('.paginacion').hasClass('slick-initialized')) {
+			$('.paginacion').slick({
+				slidesToShow: 5,
+				slidesToScroll: 1,
+				asNavFor: '.contenedor',
+				dots: false,
+				arrows: true,
+				focusOnSelect: true,
+				infinite: false,
+				prevArrow: '<button type="button" class="slick-prev"><i class="material-icons">&#xE314;</i></button>',
+				nextArrow: '<button type="button" class="slick-next"><i class="material-icons">&#xE315;</i></button>',			
+				swipeToSlide:false,
+				swipe: false,
+				draggable:false
+			});
+		}
+
+		$('.cargando').fadeOut();
+
+		$("#map_page #vista_listado .slick-slider").on("beforeChange", function (){
+		    var offsetTop = $('#map_page #main').offset().top;
+			$("html, body").animate({ scrollTop: offsetTop - 145 }, 800);
+		});
+
+		$('body.page-template-template-guia #vista_listado .slick-slider,body.post-type-archive #vista_listado .slick-slider').on("beforeChange", function (){		    
+			$("html, body").animate({ scrollTop: 0 }, 800);
+			console.log('scrollTop');
+		});
+
+		/* Filtro Accesibilidad */
+		$('.accesible').click(function(e){
+			e.stopPropagation();
+			e.preventDefault();
+        	$(this).toggleClass('activo');
+			if( $(this).hasClass('activo') ){
+				$('.accesible').addClass( 'activo' );
+			}else{
+				$('.accesible').removeClass( 'activo' );
+			}
+			if( $('.guia-sub .menu-guia-item.selected').length > 0 ){
+				// SubSeccion
+				//$('.guia-sub .menu-guia-item.selected').find('.sys_ajax').click();
+
+				Call_Ajax_From_Objet( $('.guia-sub .menu-guia-item.selected').find('.sys_ajax') , {} );
+
+			}else if( $('.guia-parent.menu-guia-item.selected').length > 0 ){
+				// Seccion
+				//$('.guia-parent.menu-guia-item.selected').find('.sys_ajax').click();
+				Call_Ajax_From_Objet( $('.guia-parent.menu-guia-item.selected').find('.sys_ajax') , {} );
+			}
+        });
+
+
+
+		/*Filtro Estrellas*/
+		$('.filtro-estrella').click(function(e){
+			e.stopPropagation();
+			e.preventDefault();
+			rating = $(this).attr('data-id');
+			$('.filtro-estrella').removeClass('activa');
+			if(rating == 5) {
+				$('.filtro-estrella').addClass('activa');
+			} else if (rating == 4) {
+				$('.filtro-estrella[data-id="4"]').addClass('activa');
+				$('.filtro-estrella[data-id="3"]').addClass('activa');
+				$('.filtro-estrella[data-id="2"]').addClass('activa');
+				$('.filtro-estrella[data-id="1"]').addClass('activa');
+			} else if (rating == 3) {
+				$('.filtro-estrella[data-id="3"]').addClass('activa');
+				$('.filtro-estrella[data-id="2"]').addClass('activa');
+				$('.filtro-estrella[data-id="1"]').addClass('activa');
+			} else if (rating == 2) {
+				$('.filtro-estrella[data-id="2"]').addClass('activa');
+				$('.filtro-estrella[data-id="1"]').addClass('activa');
+			} else if (rating == 1) {
+				$('.filtro-estrella[data-id="1"]').addClass('activa');
+			}
+
+			if( jQuery('.guia-sub .menu-guia-item.selected').find('.sys_ajax').length > 0 ){
+				$('.guia-sub .menu-guia-item.selected').find('.sys_ajax').click();
+			}else if( $('.guia-parent.menu-guia-item.selected').length > 0 ){
+				$('.guia-parent.menu-guia-item.selected').find('.sys_ajax').click();
+			}
+		});
+
+
+		$('.indistinto').click(function(e){
+			e.stopPropagation();
+			e.preventDefault();
+			$('.filtro-estrella').removeClass('activa');
+			if( jQuery('.guia-sub .menu-guia-item.selected').find('.sys_ajax').length > 0 ){
+				$('.guia-sub .menu-guia-item.selected').find('.sys_ajax').click();
+			}else if( $('.guia-parent.menu-guia-item.selected').length > 0 ){
+				$('.guia-parent.menu-guia-item.selected').find('.sys_ajax').click();
+			}
+		});
+
+		var posFooter = $('#footer').position().top - 130;
+		function absoluteToFixed() {
+		if ($(window).scrollTop() >= 10 && $(window).scrollTop() < posFooter) { 
+		    $('.vistas, .vercategorias').css({'position':'fixed', 'top':'60px', 'bottom':'auto'});
+		} else if($(window).scrollTop() > posFooter) {
+			$('.vistas, .vercategorias').css({'position':'absolute', 'bottom':'10px', 'top':'auto'});
+		}
+		}
+
+	    var posFooter = $('#footer').position().top - 130;
+		absoluteToFixed();
+
+		$(window).scroll(function() {
+			absoluteToFixed();
+		});
+
+
+		/*Novedad*/
+		var shareTop	= 0;
+		var leftEntry	= 0;
+		var footerTop	= 0;
+		if( jQuery('.share').length > 0 ){
+	      	var shareTop	= jQuery('.share').offset().top - 145;
+		}
+		if( jQuery('.novedad-entry').length > 0 ){
+	      	var leftEntry = jQuery('.novedad-entry').offset().left;
+		}
+		if( jQuery('#footer').length > 0 ){
+      		var footerTop = jQuery('#footer').position().top - 485;
+		}
+      	if($(window).width() > 481) {
+			$(window).scroll(function(){
+				var scroll = $(window).scrollTop() - 75;
+	      		if(scroll >= shareTop && scroll < footerTop) {
+	      			$('.share').css({'position':'fixed', 'left':leftEntry, 'top': '80px', 'bottom':'auto'});
+	      		} else if (scroll >= footerTop ) {
+	      			$('.share').css({'position':'absolute', 'left':0, 'top':'auto', 'bottom':'80px'});
+	      		} else {
+	      			$('.share').css({'position':'absolute', 'left':0, 'top':'80px', 'bottom':'auto'});
+	      		}
+	      	});
+		}
+
+
+
+
+	});
+
+
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	//Wait for window to resize
+	var waitForFinalEvent = (function () {
+	var timers = {};
+	return function (callback, ms, uniqueId) {
+		if (!uniqueId) {
+			uniqueId = "Don't call this twice without a uniqueId";
+		}
+		if (timers[uniqueId]) {
+			clearTimeout (timers[uniqueId]);
+		}
+		timers[uniqueId] = setTimeout(callback, ms);
+	};
+	})();
+
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+	//Trigger when window is resized
+	$(window).resize(function () {
+		waitForFinalEvent(function(){	
+			
+			//Events on resize
+			var posFooter = $('#footer').position().top - 130;
+			function absoluteToFixed() {
+			if ($(window).scrollTop() >= 10 && $(window).scrollTop() < posFooter) { 
+				$('.vistas, .vercategorias').css({'position':'fixed', 'top':'60px', 'bottom':'auto'});
+			} else if($(window).scrollTop() > posFooter) {
+				$('.vistas, .vercategorias').css({'position':'absolute', 'bottom':'10px', 'top':'auto'});
+			}
+			}
+
+			/* Futuro Viaje */
+			$('.futuroviaje-proveedores .categorias').css({'min-height':$('.futuroviaje-proveedores .proveedores').outerHeight()});			
+			
+			/*Video*/
+			scaleToFill();
+
+
+			/*Social HUB*/
+    		$('.social-inicio .facebook').css({'height':$('.social-inicio .instagram').outerHeight()});
+			
+    		$(window).scroll(function() {
+				absoluteToFixed();
+			});
+
+
+			/*Page*/
+	        if($(window).width() < 760) {
+		    	$('.slide-mobile').not('.slick-initialized').slick({
+					dots:false,
+					arrows:true,
+					infinite:true,
+					autoplay:false,
+					slidesToShow: 1,
+					slidesToScroll: 1
+	    		});
+	    	} else {
+				$('.slide-mobile.slick-initialized').slick('unslick');
+	    	}
+
+
+	    	/*Novedad*/
+			var shareTop	= 0;
+			var leftEntry	= 0;
+			var footerTop	= 0;
+			if( jQuery('.share').length > 0 ){
+				var shareTop	= jQuery('.share').offset().top - 145;
+			}
+			if( jQuery('.novedad-entry').length > 0 ){
+				var leftEntry = jQuery('.novedad-entry').offset().left;
+			}
+			if( jQuery('#footer').length > 0 ){
+				var footerTop = jQuery('#footer').position().top - 485;
+			}
+	      	//var shareTop = jQuery('.share').offset().top - 145;
+	      	//var leftEntry = jQuery('.novedad-entry').offset().left;
+	      	//var footerTop = jQuery('#footer').offset().top - 485;
+	      	if($(window).width() > 481) {
+				$(window).scroll(function(){
+					var scroll = $(window).scrollTop() - 75;
+		      		if(scroll >= shareTop && scroll < footerTop) {
+		      			$('.share').css({'position':'fixed', 'left':leftEntry, 'top': '80px', 'bottom':'auto'});
+		      		} else if (scroll >= footerTop ) {
+		      			$('.share').css({'position':'absolute', 'left':0, 'top':'auto', 'bottom':'80px'});
+		      		} else {
+		      			$('.share').css({'position':'absolute', 'left':0, 'top':'80px', 'bottom':'auto'});
+		      		}
+		      	});
+			} 
+
+			//Tabla Promociones
+			tablaResponsive();
+    		
+			
+		}, 500);
+	});
+
+}(window.jQuery || window.$));
+
+

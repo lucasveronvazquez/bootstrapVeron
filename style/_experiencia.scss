@@ -1,17 +1,32 @@
-$parrafos:(
-    parrafo1: red,
-    parrafo2: lightblue,
-    parrafo3: green,
 
-
-
-);
-
-@each $parrafo, $color in $parrafos {
-    
-
-    .parrafo--#{$parrafo}{
-        color: $color;
-    }
+#parrafoExperiencia{
+    font-size: large;
+    font-weight: 600;
 }
 
+#galeria{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    grid-template-areas: "img1 img2"
+                         "img3 img4";
+    gap: 10px;
+}
+
+#galeria img{
+    width: 100%;
+    height: 90%;
+    box-shadow: 0 0 10px black;
+    border-radius: 10px;
+}
+#galeria img:hover{
+    transform: scale(1.3);
+    transition-property: all;
+    transition-duration: 1s;
+}
+
+#subExperiencia{
+    padding: 60px 40px 20px 40px; 
+    align-items: center;
+    text-align: center;
+}

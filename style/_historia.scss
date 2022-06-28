@@ -1,5 +1,34 @@
 #historiaParrafo{
-    font-size: x-large;
-    font-weight: 400;
+    font-size: larger;
+    font-weight: 600;
 }
 
+
+
+#carrusel{
+    width: 600px;
+    height: 600px;
+    margin: 100px 200px 100px 300px;
+
+    img{
+        width: 100%;
+        height: 90%;
+    }
+}
+
+#flora{
+    padding-top: 60px;
+    font-size: large;
+    font-weight: 600;
+}
+
+#fauna{
+    padding-top: 60px;
+    font-size: large;
+    font-weight: 600;
+}
+
+.card-text{
+    font-size: large;
+    font-weight: 600;
+}
