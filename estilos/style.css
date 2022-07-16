@@ -79,6 +79,11 @@ nav {
   font-weight: 600;
 }
 
+@media screen and (max-width: 950px) {
+  #carrusel {
+    display: none;
+  }
+}
 .parrafoServicios {
   padding-top: 200px;
   display: flex;

@@ -32,3 +32,10 @@
     font-size: large;
     font-weight: 600;
 }
+
+@media screen and (max-width:950px){
+    #carrusel{
+        display:none;
+    }
+}
+  
